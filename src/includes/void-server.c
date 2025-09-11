@@ -20,9 +20,9 @@ void serverInit(struct serverInfo *serverInfo){
 	bind(serverInfo->sDesc, (struct sockaddr*)&serverInfo->sAddr, sizeof(serverInfo->sAddr));
 }
 
-void sendStrServer(struct serverInfo *serverInfo, const char* str, int strLength){
-	int clientStructLen = sizeof(serverInfo->sAddr);
-	sendto(serverInfo->sDesc, str, strLength, 0, (struct sockaddr*)&serverInfo->sAddr, clientStructLen);
+void sendStrServer(struct serverInfo *serverInfo, const char* str, int strLength, struct sockaddr_in *clientAddr){
+	int clientStructLen = sizeof(clientAddr);
+	sendto(serverInfo->sDesc, str, strLength, 0, (struct sockaddr*)&clientAddr, clientStructLen);
 }
 
 void receiveStrServer(struct serverInfo *serverInfo, char* str, int strSize){
