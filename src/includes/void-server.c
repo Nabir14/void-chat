@@ -7,7 +7,6 @@
 struct serverInfo {
 	int sDesc;
 	struct sockaddr_in sAddr;
-	struct sockaddr_in cAddr;
 	char ip[15];
 	int port;
 };
@@ -22,13 +21,13 @@ void serverInit(struct serverInfo *serverInfo){
 }
 
 void sendStrServer(struct serverInfo *serverInfo, const char* str, int strLength){
-	int clientStructLen = sizeof(serverInfo->cAddr);
-	sendto(serverInfo->sDesc, str, strLength, 0, (struct sockaddr*)&serverInfo->cAddr, clientStructLen);
+	int clientStructLen = sizeof(serverInfo->sAddr);
+	sendto(serverInfo->sDesc, str, strLength, 0, (struct sockaddr*)&serverInfo->sAddr, clientStructLen);
 }
 
 void receiveStrServer(struct serverInfo *serverInfo, char* str, int strSize){
-	int clientStructLen = sizeof(serverInfo->cAddr);
-	recvfrom(serverInfo->sDesc, str, strSize, 0, (struct sockaddr*)&serverInfo->cAddr, &clientStructLen);
+	int clientStructLen = sizeof(serverInfo->sAddr);
+	recvfrom(serverInfo->sDesc, str, strSize, 0, (struct sockaddr*)&serverInfo->sAddr, &clientStructLen);
 }
 
 void stopServer(struct serverInfo *serverInfo){

@@ -14,16 +14,20 @@ struct clientInfo client;
 
 void *serverRead(){
 	char msg[256];
-	receiveStrServer(&server, msg, sizeof(msg));
-	printf("[LOG]: %s\n", msg);
-	sendStrServer(&server, msg, strlen(msg));	
+	while(true){
+		receiveStrServer(&server, msg, sizeof(msg));
+		printf("[LOG]: %s\n", msg);
+		sendStrServer(&server, msg, strlen(msg));
+	}	
 	return NULL;
 }
 
 void *clientRead(){
 	char msg[256];
-	receiveStrClient(&client, msg, sizeof(msg));
-	printf("%s\n", msg);
+	while(true){
+		receiveStrClient(&client, msg, sizeof(msg));
+		printf("\n%s\n", msg);
+	}
 	return NULL;
 }
 
@@ -84,10 +88,10 @@ void runClient(){
 		}else{
 			char message[256];
 			strcpy(message, alias); // user
-			strcpy(message, ":");   // user:
+			strcat(message, ":");   // user:
 			strcat(message, msg);   // user: msg
 			strcat(message, "\0");  // user: msg\0
-			sendStrClient(&client, msg, strlen(msg));
+			sendStrClient(&client, message, strlen(message));
 		}
 	}
 }
