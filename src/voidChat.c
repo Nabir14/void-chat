@@ -15,14 +15,14 @@ struct clientInfo client;
 void appendClient(struct sockaddr_in *clientList, int *clientCount){
 	if(*clientCount > 0){
 	for(int i = 0; i < *clientCount; i++){
-		if(!(server.sAddr.sin_addr.s_addr == clientList[i].sin_addr.s_addr && server.sAddr.sin_port == clientList[i].sin_port)){
-			clientList[i] = server.sAddr;
-			clientCount++;
+		if(!(server.cAddr.sin_addr.s_addr == clientList[i].sin_addr.s_addr && server.cAddr.sin_port == clientList[i].sin_port)){
+			clientList[i] = server.cAddr;
+			(*clientCount)++;
 		}
 	}
 	}else{
 		clientList[0] = server.sAddr;
-		clientCount++;
+		(*clientCount)++;
 	}
 }
 
