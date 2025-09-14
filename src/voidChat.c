@@ -31,6 +31,7 @@ void *serverRead(){
 	struct sockaddr_in clients[16];
 	int connectedClients = 0;
 	while(true){
+		memset(msg, 0, sizeof(msg));
 		receiveStrServer(&server, msg, sizeof(msg));
 		printf("[LOG]: %s\n", msg);
 		appendClient(clients, &connectedClients);
@@ -44,6 +45,7 @@ void *serverRead(){
 void *clientRead(){
 	char msg[256];
 	while(true){
+		memset(msg, 0, sizeof(msg));
 		receiveStrClient(&client, msg, sizeof(msg));
 		printf("\n%s\n", msg);
 	}
