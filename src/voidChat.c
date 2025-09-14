@@ -16,7 +16,7 @@ void appendClient(struct sockaddr_in *clientList, int *clientCount){
 	if(*clientCount > 0){
 	for(int i = 0; i < *clientCount; i++){
 		if(!(server.cAddr.sin_addr.s_addr == clientList[i].sin_addr.s_addr && server.cAddr.sin_port == clientList[i].sin_port)){
-			clientList[i] = server.cAddr;
+			clientList[*clientCount] = server.cAddr;
 			(*clientCount)++;
 		}
 	}
@@ -93,6 +93,9 @@ void runClient(){
 	pthread_t clientThread;
 	pthread_create(&clientThread, NULL, clientRead, NULL);
 	while(connected){
+		// Clear Buffer
+		memset(msg, 0, sizeof(msg));
+
 		// Scan Message
 		printf("$[%s]: ", alias);
 		scanf("%[^\n]", msg);
@@ -106,10 +109,10 @@ void runClient(){
 			printf("[LOG]: Disconnected From Server!\n");
 		}else{
 			char message[256];
+			memset(message, 0, sizeof(message));
 			strcpy(message, alias); // user
-			strcat(message, ":");   // user:
+			strcat(message, ": ");   // user:
 			strcat(message, msg);   // user: msg
-			strcat(message, "\0");  // user: msg\0
 			sendStrClient(&client, message, strlen(message));
 		}
 	}
