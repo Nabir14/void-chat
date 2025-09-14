@@ -21,7 +21,7 @@ void appendClient(struct sockaddr_in *clientList, int *clientCount){
 		}
 	}
 	}else{
-		clientList[0] = server.sAddr;
+		clientList[0] = server.cAddr;
 		(*clientCount)++;
 	}
 }
