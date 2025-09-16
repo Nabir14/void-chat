@@ -19,7 +19,7 @@ void clientInit(struct clientInfo *clientInfo){
 }
 
 void receiveStrClient(struct clientInfo *clientInfo, char* str, int strSize){
-	int serverStructLen = sizeof(clientInfo->cAddr);
+	socklen_t serverStructLen = sizeof(clientInfo->cAddr);
 	recvfrom(clientInfo->sDesc, str, strSize, 0, (struct sockaddr*)&clientInfo->cAddr, &serverStructLen);
 }
 

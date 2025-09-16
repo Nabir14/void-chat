@@ -15,10 +15,6 @@ struct serverReadArgs {
 	struct sockaddr_in clients[];
 };
 
-struct clientReadArgs {
-	bool isExiting;
-};
-
 int serverMaxClients = 2;
 char alias[8];	
 struct serverInfo server;
@@ -69,9 +65,8 @@ void *serverRead(void* arguments){
 	return NULL;
 }
 
-void *clientRead(void* arguments){
+void *clientRead(){
 	char msg[256];
-	struct clientReadArgs *args = (struct clientReadArgs*)arguments;
 	while(true){
 		// Clear Previous Buffer
 		memset(msg, 0, sizeof(msg));
@@ -82,9 +77,7 @@ void *clientRead(void* arguments){
 		// Print: The Message
 		// Note: This actually moves the input feild down.
 		printf("\r%s\n", msg);
-		if(args->isExiting == false){
-			printf("[%s]: ", alias);
-		}
+		printf("[%s]: ", alias);
 
 		// Force Update Terminal Screen
 		fflush(stdout);
@@ -95,7 +88,6 @@ void *clientRead(void* arguments){
 void runServer(){
 	char isGlobalChoice = 'n';
 	struct serverReadArgs readInfo;
-	readInfo.clients[serverMaxClients];
 	readInfo.connectedClients = 0;
 
 	// Get Info
@@ -142,9 +134,7 @@ void runClient(){
 	// Define Function Vars
 	char msg[256];
 	bool connected = true;
-	struct clientReadArgs readInfo;
-	readInfo.isExiting = false;
-	
+		
 	// Get Server Info
 	printf("IP: ");
 	scanf("%[^\n]", client.ip);
@@ -163,7 +153,7 @@ void runClient(){
 
 	// Start Reading Messages From Server (Multi-Thread)
 	pthread_t clientThread;
-	pthread_create(&clientThread, NULL, clientRead, (void*)&readInfo);
+	pthread_create(&clientThread, NULL, clientRead, NULL);
 
 	// Define Join Message	
 	char serverConnectMsg[43];
@@ -187,18 +177,19 @@ void runClient(){
 		getchar();
 		
 		if(!strcmp(msg, "/exit")){
-			readInfo.isExiting = true;
-
 			// Define Server Disconnect Message
 			char serverDisconnectMsg[42];
 			strcpy(serverDisconnectMsg, "[SERVER]: ");
 			strcat(serverDisconnectMsg, alias);
 			strcat(serverDisconnectMsg, " has left the server.");
+
+			// Stop Reading
+			pthread_cancel(clientThread);
+			
 			// Send Disconnect Message
 			sendStrClient(&client, serverDisconnectMsg, strlen(serverDisconnectMsg));
 
 			// Disconnect
-			pthread_cancel(clientThread);
 			connected = false;
 		}else{
 			// Define Message For Send
@@ -217,7 +208,7 @@ void runClient(){
 			// Remove Input Line
 			printf("\r");
 			printf("\x1b[1A");
-			for(int i = 0; i < strlen(tempMessage); i++){
+			for(size_t i = 0; i < strlen(tempMessage); i++){
 				printf(" ");
 			}
 			fflush(stdout);
