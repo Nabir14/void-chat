@@ -10,6 +10,15 @@
 #define VERSION 1.0
 #define AUTHOR "Nabir14"
 
+struct serverReadArgs {
+	int connectedClients;
+	struct sockaddr_in clients[];
+};
+
+struct clientReadArgs {
+	bool isExiting;
+};
+
 int serverMaxClients = 2;
 char alias[8];	
 struct serverInfo server;
@@ -39,10 +48,9 @@ void appendClient(struct sockaddr_in *clientList, int *clientCount){
 	}
 }
 
-void *serverRead(){
+void *serverRead(void* arguments){
 	char msg[256];
-	struct sockaddr_in clients[16];
-	int connectedClients = 0;
+	struct serverReadArgs *args = (struct serverReadArgs*)arguments;
 	while(true){
 		// Clear Previous Buffer
 		memset(msg, 0, sizeof(msg));
@@ -51,18 +59,19 @@ void *serverRead(){
 		receiveStrServer(&server, msg, sizeof(msg));
 
 		printf("[LOG]: %s\n", msg);
-		appendClient(clients, &connectedClients);
+		appendClient(args->clients, &args->connectedClients);
 
 		// Echo Back To All Connected Clients
-		for(int i = 0; i < connectedClients; i++){
-			sendStrServer(&server, msg, strlen(msg), &clients[i]);
+		for(int i = 0; i < args->connectedClients; i++){
+			sendStrServer(&server, msg, strlen(msg), &args->clients[i]);
 		}
 	}	
 	return NULL;
 }
 
-void *clientRead(){
+void *clientRead(void* arguments){
 	char msg[256];
+	struct clientReadArgs *args = (struct clientReadArgs*)arguments;
 	while(true){
 		// Clear Previous Buffer
 		memset(msg, 0, sizeof(msg));
@@ -73,7 +82,9 @@ void *clientRead(){
 		// Print: The Message
 		// Note: This actually moves the input feild down.
 		printf("\r%s\n", msg);
-		printf("[%s]: ", alias);
+		if(args->isExiting == false){
+			printf("[%s]: ", alias);
+		}
 
 		// Force Update Terminal Screen
 		fflush(stdout);
@@ -83,6 +94,9 @@ void *clientRead(){
 
 void runServer(){
 	char isGlobalChoice = 'n';
+	struct serverReadArgs readInfo;
+	readInfo.clients[serverMaxClients];
+	readInfo.connectedClients = 0;
 
 	// Get Info
 	printf("Host Server Globally? [y/N]: ");
@@ -103,7 +117,7 @@ void runServer(){
 
 	// Host Server (Multi-Thread)
 	pthread_t serverThread;
-	pthread_create(&serverThread, NULL, serverRead, NULL);
+	pthread_create(&serverThread, NULL, serverRead, (void*)&readInfo);
 
 	// Log
 	printf("[LOG]: Server Is Running\n[Press Enter To Close Server]\n");
@@ -111,16 +125,25 @@ void runServer(){
 	// Get Input
 	getchar();
 
+	// Echo Exit Message Back To All Connected Clients
+	char serverExitMsg[32] = "[SERVER]: Server Has Stopped!\n";
+	for(int i = 0; i < readInfo.connectedClients; i++){
+		sendStrServer(&server, serverExitMsg, strlen(serverExitMsg), &readInfo.clients[i]);
+	}
+
 	// Close On Enter
 	pthread_cancel(serverThread);
 	stopServer(&server);
 }
 
 void runClient(){
+	memset(alias, 0, sizeof(alias));
 
 	// Define Function Vars
 	char msg[256];
 	bool connected = true;
+	struct clientReadArgs readInfo;
+	readInfo.isExiting = false;
 	
 	// Get Server Info
 	printf("IP: ");
@@ -140,8 +163,17 @@ void runClient(){
 
 	// Start Reading Messages From Server (Multi-Thread)
 	pthread_t clientThread;
-	pthread_create(&clientThread, NULL, clientRead, NULL);
-	
+	pthread_create(&clientThread, NULL, clientRead, (void*)&readInfo);
+
+	// Define Join Message	
+	char serverConnectMsg[43];
+	strcpy(serverConnectMsg, "[SERVER]: ");
+	strcat(serverConnectMsg, alias);
+	strcat(serverConnectMsg, " has joined the server.");
+
+	// Establish A Connection With Server Using First Message
+	sendStrClient(&client, serverConnectMsg, strlen(serverConnectMsg));
+
 	// Print Input Label ([alias]:)
 	printf("[%s]: ", alias);
 
@@ -153,21 +185,48 @@ void runClient(){
 		// Scan Message
 		scanf("%[^\n]", msg);
 		getchar();
-
+		
 		if(!strcmp(msg, "/exit")){
+			readInfo.isExiting = true;
+
+			// Define Server Disconnect Message
+			char serverDisconnectMsg[42];
+			strcpy(serverDisconnectMsg, "[SERVER]: ");
+			strcat(serverDisconnectMsg, alias);
+			strcat(serverDisconnectMsg, " has left the server.");
+			// Send Disconnect Message
+			sendStrClient(&client, serverDisconnectMsg, strlen(serverDisconnectMsg));
+
 			// Disconnect
 			pthread_cancel(clientThread);
 			connected = false;
-
-			// Log
-			printf("[LOG]: Disconnected From Server!\n");
 		}else{
-			// Define And Send Message
+			// Define Message For Send
 			char message[256];
 			strcpy(message, alias); // user
 			strcat(message, ": ");   // user:
 			strcat(message, msg);   // user: msg
-			sendStrClient(&client, message, strlen(message));
+
+			// Define Temp Message For Clear
+			char tempMessage[256];
+			strcpy(tempMessage, "["); // [
+			strcat(tempMessage, alias); // [user
+			strcat(tempMessage, "]: ");   // [user]:
+			strcat(tempMessage, msg);   // [user]: msg
+
+			// Remove Input Line
+			printf("\r");
+			printf("\x1b[1A");
+			for(int i = 0; i < strlen(tempMessage); i++){
+				printf(" ");
+			}
+			fflush(stdout);
+
+
+			// Send Message If There Is Any
+			if(strcmp(message, "")){
+				sendStrClient(&client, message, strlen(message));
+			}
 		}
 	}
 }
