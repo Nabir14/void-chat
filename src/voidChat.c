@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
 #include <pthread.h>
@@ -9,23 +10,29 @@
 #define VERSION 1.0
 #define AUTHOR "Nabir14"
 
+int serverMaxClients = 2;
 char alias[8];	
 struct serverInfo server;
 struct clientInfo client;
 
 void appendClient(struct sockaddr_in *clientList, int *clientCount){
 	if(*clientCount > 0){
+		bool isInList = false;
 		for(int i = 0; i < *clientCount; i++){
-			// Check If Client Doesnt Exists
+			// Check If Client Exists
 			// like: Server Recived Client Addr == Addr of Client at index (i)
 			// and: Server Recived Client Port == Port of Client at index (i)
-			if(!(server.cAddr.sin_addr.s_addr == clientList[i].sin_addr.s_addr && server.cAddr.sin_port == clientList[i].sin_port)){
-				if(*clientCount < 16){
-					clientList[*clientCount] = server.cAddr;
-					(*clientCount)++;
-				}
+			if(server.cAddr.sin_addr.s_addr == clientList[i].sin_addr.s_addr && server.cAddr.sin_port == clientList[i].sin_port){
+				isInList = true;
+				break;
 			}
 		}
+		// Append If Only Not Found
+		if(!isInList && *clientCount < serverMaxClients){
+			clientList[*clientCount] = server.cAddr;
+			(*clientCount)++;
+		}
+
 	}else{
 		clientList[0] = server.cAddr;
 		(*clientCount)++;
@@ -74,9 +81,23 @@ void *clientRead(){
 	return NULL;
 }
 
-void runServer(){	
+void runServer(){
+	char isGlobalChoice = 'n';
+
+	// Get Info
+	printf("Host Server Globally? [y/N]: ");
+	scanf("%c", &isGlobalChoice);
+	getchar();
+	printf("Max Clients: ");
+	scanf("%d", &serverMaxClients);
+	getchar();
+
 	// Initialize Server
-	strcpy(server.ip, "127.0.0.1");
+	if(tolower(isGlobalChoice) == 'y'){
+		strcpy(server.ip, "0.0.0.0");
+	}else{
+		strcpy(server.ip, "127.0.0.1");
+	}
 	server.port = DEFAULT_PORT;
 	serverInit(&server);
 

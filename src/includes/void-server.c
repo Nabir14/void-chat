@@ -17,7 +17,11 @@ void serverInit(struct serverInfo *serverInfo){
 	serverInfo->sAddr;
 	serverInfo->sAddr.sin_family = AF_INET;
 	serverInfo->sAddr.sin_port = htons(serverInfo->port);
-	serverInfo->sAddr.sin_addr.s_addr = inet_addr(serverInfo->ip);
+	if (strcmp(serverInfo->ip, "0.0.0.0")){
+		serverInfo->sAddr.sin_addr.s_addr = INADDR_ANY;
+	}else{
+		serverInfo->sAddr.sin_addr.s_addr = inet_addr(serverInfo->ip);
+	}
 	bind(serverInfo->sDesc, (struct sockaddr*)&serverInfo->sAddr, sizeof(serverInfo->sAddr));
 }
 
