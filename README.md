@@ -1,6 +1,8 @@
 # void-chat
 Terminal Based Chat Application Written In C
 
+**⚠️ Note:** This is the contribution repository. Which means that code here is not stable and will change very often.
+
 ## Information
 - **Version:** `1.0`
 - **Protocol:** `UDP`
@@ -33,10 +35,6 @@ Terminal Based Chat Application Written In C
 - `/info`: Show Program Information.
 
 ## Contribution:
-This proram was written when I was learning Sockets and so It might be have unsafe code, unoptimized code or some missing some features.
-But it dosen't have to be like this forever because you can Contribute to this project!
-
-**⚠️ Note:** This Repository Is Read Only and I will not accept any pull requests on this repo.
-
-*To Contribute Please Refer To This Repository Instead:*
-
+**You can contribute using:**
+- Pull Requests (Implement Features)
+- Opening Issues (Bugs or Suggestions)
