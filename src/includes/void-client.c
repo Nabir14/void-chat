@@ -1,15 +1,4 @@
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
-
-struct clientInfo {
-	int sDesc;
-	struct sockaddr_in cAddr;
-	char ip[15];
-	int port;
-};
+#include "void-client.h"
 
 void clientInit(struct clientInfo *clientInfo){
 	clientInfo->sDesc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);

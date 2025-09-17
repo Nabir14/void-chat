@@ -1,7 +1,18 @@
 #ifndef VOIDCLIENT_H
 #define VOIDCLIENT_H
 
-struct clientInfo;
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+
+struct clientInfo {
+	int sDesc;
+	struct sockaddr_in cAddr;
+	char ip[15];
+	int port;
+};
 
 void clientInit(struct clientInfo *clientInfo);
 void receiveStrClient(struct clientInfo *clientInfo, char* str, int strSize);

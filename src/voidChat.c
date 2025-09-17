@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include <pthread.h>
-#include "includes/void-server.c"
-#include "includes/void-client.c"
+#include "includes/void-server.h"
+#include "includes/void-client.h"
 
 #define DEFAULT_PORT 16384
 #define VERSION 1.0
@@ -114,7 +114,8 @@ void runServer(){
 	pthread_create(&serverThread, NULL, serverRead, (void*)readInfo);
 
 	// Log
-	printf("[LOG]: Server Is Running\n[Press Enter To Close Server]\n");
+	printf("[LOG]: Server Is Running At %s\n", server.ip);
+	printf("[Press Enter To Close Server]\n");
 
 	// Get Input
 	getchar();
@@ -129,6 +130,8 @@ void runServer(){
 	pthread_cancel(serverThread);
 	free(readInfo);
 	stopServer(&server);
+
+	printf("[LOG]: Server Closed Successfully!\n");
 }
 
 void runClient(){
@@ -194,6 +197,8 @@ void runClient(){
 
 			// Disconnect
 			connected = false;
+			
+			printf("[LOG]: Disconnected From Server Successfully!\n");
 		}else{
 			// Define Message For Send
 			char message[256];
