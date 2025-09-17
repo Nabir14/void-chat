@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
@@ -87,8 +88,6 @@ void *clientRead(){
 
 void runServer(){
 	char isGlobalChoice = 'n';
-	struct serverReadArgs readInfo;
-	readInfo.connectedClients = 0;
 
 	// Get Info
 	printf("Host Server Globally? [y/N]: ");
@@ -97,6 +96,9 @@ void runServer(){
 	printf("Max Clients: ");
 	scanf("%d", &serverMaxClients);
 	getchar();
+
+	struct serverReadArgs *readInfo = malloc(sizeof(struct serverReadArgs) + serverMaxClients * sizeof(int));
+	readInfo->connectedClients = 0;
 
 	// Initialize Server
 	if(tolower(isGlobalChoice) == 'y'){
@@ -109,7 +111,7 @@ void runServer(){
 
 	// Host Server (Multi-Thread)
 	pthread_t serverThread;
-	pthread_create(&serverThread, NULL, serverRead, (void*)&readInfo);
+	pthread_create(&serverThread, NULL, serverRead, (void*)readInfo);
 
 	// Log
 	printf("[LOG]: Server Is Running\n[Press Enter To Close Server]\n");
@@ -119,12 +121,13 @@ void runServer(){
 
 	// Echo Exit Message Back To All Connected Clients
 	char serverExitMsg[32] = "[SERVER]: Server Has Stopped!\n";
-	for(int i = 0; i < readInfo.connectedClients; i++){
-		sendStrServer(&server, serverExitMsg, strlen(serverExitMsg), &readInfo.clients[i]);
+	for(int i = 0; i < readInfo->connectedClients; i++){
+		sendStrServer(&server, serverExitMsg, strlen(serverExitMsg), &readInfo->clients[i]);
 	}
 
 	// Close On Enter
 	pthread_cancel(serverThread);
+	free(readInfo);
 	stopServer(&server);
 }
 
